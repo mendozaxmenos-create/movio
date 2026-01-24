@@ -188,6 +188,7 @@ El backend expone una API REST simple:
 - `POST /inventory` / `GET /inventory` — inventario simple de alimentos / sobras
 - `GET /stats/overview` — resumen de días y estados en un rango
 - `GET /stats/deviations` — listado de días con desvíos y si hubo recuperación
+- `GET /shopping-list?from&to&forDays` — sugerencia de lista de compras mínima en base a tu consumo real y al inventario
 
 Persistencia:
 

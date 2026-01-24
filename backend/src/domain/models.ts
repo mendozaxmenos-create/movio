@@ -110,3 +110,16 @@ export interface InventoryItem {
   createdAt: string;
 }
 
+export interface ShoppingListItem {
+  name: string;
+  suggestedQty: number;
+  unit?: string;
+}
+
+export interface ShoppingList {
+  from: ISODate;
+  to: ISODate;
+  forDays: number;
+  items: ShoppingListItem[];
+}
+

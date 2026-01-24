@@ -14,6 +14,7 @@ import { computeDayDecisionSummary, computeWeightTrend } from '../domain/decisio
 import { buildDayTimeline } from '../domain/timeline';
 import { generateCoachReply } from '../application/coach';
 import { computeOverviewStats, listDeviationDays } from '../application/stats';
+import { computeShoppingList } from '../application/shopping';
 
 const mealSchema = z.object({
   type: z.custom<MealType>().transform(v => v as MealType),
@@ -370,6 +371,29 @@ export function buildHttpApp(repo: DayLogRepository) {
     const deviations = listDeviationDays(days);
 
     res.json({ deviations });
+  });
+
+  // Sugerencia de lista de compras para los próximos N días
+  app.get('/shopping-list', async (req, res) => {
+    const from = req.query.from as string | undefined;
+    const to = req.query.to as string | undefined;
+    const forDaysRaw = req.query.forDays as string | undefined;
+
+    if (!from || !to || !isIsoDate(from) || !isIsoDate(to)) {
+      return res.status(400).json({
+        error: 'Parámetros inválidos, se esperan ?from=YYYY-MM-DD&to=YYYY-MM-DD',
+      });
+    }
+
+    const forDaysParsed = forDaysRaw ? Number(forDaysRaw) : 3;
+    const forDays = Number.isFinite(forDaysParsed) && forDaysParsed > 0 ? Math.min(forDaysParsed, 7) : 3;
+
+    const days = await repo.listDays(from, to);
+    const inventory = await repo.listInventory();
+
+    const shoppingList = computeShoppingList(from, to, days, inventory, forDays);
+
+    res.json({ shoppingList });
   });
 
   return app;
