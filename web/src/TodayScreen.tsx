@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Timeline } from './components/Timeline';
 import { MessageInput } from './components/MessageInput';
 import { QuickActions } from './components/QuickActions';
-import { fetchTimeline, getDefaultDay, registerActivity, registerMeal, registerNote, registerWeight, sendCoachMessage, uploadActivityImage } from './api';
+import { fetchTimeline, getDefaultDay, registerActivity, registerMeal, registerNote, registerWeight, sendCoachMessage } from './api';
 import type { TimelineEvent } from './types';
 
 export function TodayScreen() {
@@ -87,11 +87,6 @@ export function TodayScreen() {
     await askShortPrompt(`Nota del día: ${text}`);
   }
 
-  async function handleUploadActivityImage(file: File) {
-    await uploadActivityImage(day, file);
-    await askShortPrompt('Te paso el ejercicio de hoy en una captura de pantalla.');
-  }
-
   return (
     <div className="screen">
       <header className="screen-header">
@@ -117,7 +112,6 @@ export function TodayScreen() {
           onRegisterActivity={handleRegisterActivity}
           onRegisterWeight={handleRegisterWeight}
           onRegisterNote={handleRegisterNote}
-          onUploadActivityImage={handleUploadActivityImage}
         />
         <MessageInput disabled={loading} onSend={handleSendMessage} />
       </div>
