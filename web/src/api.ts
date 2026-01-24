@@ -86,3 +86,13 @@ export async function registerNote(day: string, text: string) {
   return handleJson<unknown>(res);
 }
 
+export async function uploadActivityImage(day: string, file: File) {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch(`${API_BASE_URL}/days/${day}/activities/from-image`, {
+    method: 'POST',
+    body: formData,
+  });
+  return handleJson<unknown>(res);
+}
+

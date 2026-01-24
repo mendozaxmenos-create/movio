@@ -33,6 +33,7 @@ export interface ActivitySession {
   distanceKm?: number;
   intensity: ActivityIntensity;
   calories?: number;
+  attachmentPath?: string;
   createdAt: string;
 }
 

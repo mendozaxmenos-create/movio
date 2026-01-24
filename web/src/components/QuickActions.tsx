@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface Props {
   day: string;
@@ -6,6 +6,7 @@ interface Props {
   onRegisterActivity: () => Promise<void>;
   onRegisterWeight: () => Promise<void>;
   onRegisterNote: () => Promise<void>;
+  onUploadActivityImage: (file: File) => Promise<void>;
 }
 
 export function QuickActions({
@@ -13,8 +14,10 @@ export function QuickActions({
   onRegisterActivity,
   onRegisterWeight,
   onRegisterNote,
+  onUploadActivityImage,
 }: Props) {
   const [busy, setBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   async function wrap(action: () => Promise<void>) {
     if (busy) return;
@@ -24,6 +27,13 @@ export function QuickActions({
     } finally {
       setBusy(false);
     }
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await wrap(() => onUploadActivityImage(file));
+    e.target.value = '';
   }
 
   return (
@@ -37,12 +47,26 @@ export function QuickActions({
       <button onClick={() => wrap(onRegisterActivity)} disabled={busy}>
         Actividad
       </button>
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={busy}
+      >
+        Foto act.
+      </button>
       <button onClick={() => wrap(onRegisterWeight)} disabled={busy}>
         Peso
       </button>
       <button onClick={() => wrap(onRegisterNote)} disabled={busy}>
         Nota
       </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
 import { DayLogRepository } from './repository';
 import {
   ActivityIntensity,
@@ -58,6 +61,13 @@ export function buildHttpApp(repo: DayLogRepository) {
   const app = express();
   app.use(cors());
   app.use(express.json());
+
+  // Configuración simple de subida de imágenes a carpeta local "uploads"
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  const upload = multer({ dest: uploadsDir });
 
   // Healthcheck simple
   app.get('/health', (_req, res) => {
@@ -165,6 +175,60 @@ export function buildHttpApp(repo: DayLogRepository) {
       decision,
     });
   });
+
+  // Registrar actividad a partir de una imagen (stub, futuro reconocimiento por visión)
+  app.post(
+    '/days/:day/activities/from-image',
+    upload.single('image'),
+    async (req, res) => {
+      const day = req.params.day;
+      if (!isIsoDate(day)) {
+        return res
+          .status(400)
+          .json({ error: 'Formato de día inválido, esperado YYYY-MM-DD' });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: 'Se requiere un archivo de imagen en el campo "image"' });
+      }
+
+      const id = `act_img_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const createdAt = new Date().toISOString();
+
+      // TODO: aquí se debería llamar a un servicio de visión (ChatGPT con imágenes u otro)
+      // para extraer tipo de actividad, duración, distancia, etc. Por ahora usamos valores neutros.
+
+      await repo.upsertActivity(day, {
+        id,
+        day,
+        type: 'otro',
+        durationMinutes: 30,
+        intensity: 'media',
+        attachmentPath: req.file.path,
+        createdAt,
+      });
+
+      const dayLog = (await repo.getDay(day))!;
+      const decision = computeDayDecisionSummary(dayLog);
+
+      res.status(201).json({
+        activity: {
+          id,
+          day,
+          type: 'otro',
+          durationMinutes: 30,
+          intensity: 'media',
+          attachmentPath: req.file.path,
+          createdAt,
+        },
+        decision,
+        recognition: {
+          status: 'stub',
+          message:
+            'La actividad se registró a partir de la imagen. En una versión futura se leerán los datos exactos de la captura.',
+        },
+      });
+    },
+  );
 
   // Registrar peso
   app.post('/days/:day/weight', async (req, res) => {
