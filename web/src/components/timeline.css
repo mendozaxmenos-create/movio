@@ -32,12 +32,24 @@
   color: #e5e7eb;
 }
 
+.bubble-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
 .bubble-label {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #9ca3af;
-  margin-bottom: 2px;
+}
+
+.bubble-time {
+  font-size: 0.7rem;
+  color: #6b7280;
 }
 
 .bubble-text {

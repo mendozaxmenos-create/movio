@@ -5,6 +5,12 @@ interface Props {
   events: TimelineEvent[];
 }
 
+function formatTime(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
+
 export function Timeline({ events }: Props) {
   if (events.length === 0) {
     return (
@@ -20,7 +26,10 @@ export function Timeline({ events }: Props) {
         if (event.type === 'coach_message') {
           return (
             <div key={event.id} className="bubble bubble-coach">
-              <div className="bubble-label">Movio</div>
+              <div className="bubble-label-row">
+                <div className="bubble-label">Movio</div>
+                <div className="bubble-time">{formatTime(event.createdAt)}</div>
+              </div>
               <div className="bubble-text">{event.data.message.text}</div>
             </div>
           );
@@ -34,7 +43,10 @@ export function Timeline({ events }: Props) {
               : `${meal.type[0].toUpperCase()}${meal.type.slice(1)}`;
           return (
             <div key={event.id} className="bubble bubble-user">
-              <div className="bubble-label">{label}</div>
+              <div className="bubble-label-row">
+                <div className="bubble-label">{label}</div>
+                <div className="bubble-time">{formatTime(event.createdAt)}</div>
+              </div>
               <div className="bubble-text">{meal.items.join(', ') || 'Sin detalle'}</div>
             </div>
           );
@@ -44,7 +56,10 @@ export function Timeline({ events }: Props) {
           const a = event.data.activity;
           return (
             <div key={event.id} className="bubble bubble-user">
-              <div className="bubble-label">Actividad · {a.type}</div>
+              <div className="bubble-label-row">
+                <div className="bubble-label">Actividad · {a.type}</div>
+                <div className="bubble-time">{formatTime(event.createdAt)}</div>
+              </div>
               <div className="bubble-text">
                 {a.durationMinutes} min · intensidad {a.intensity}
               </div>
@@ -56,7 +71,10 @@ export function Timeline({ events }: Props) {
           const w = event.data.weight;
           return (
             <div key={event.id} className="bubble bubble-user">
-              <div className="bubble-label">Peso</div>
+              <div className="bubble-label-row">
+                <div className="bubble-label">Peso</div>
+                <div className="bubble-time">{formatTime(event.createdAt)}</div>
+              </div>
               <div className="bubble-text">{w.weightKg.toFixed(1)} kg</div>
             </div>
           );
@@ -66,7 +84,10 @@ export function Timeline({ events }: Props) {
           const n = event.data.note;
           return (
             <div key={event.id} className="bubble bubble-user">
-              <div className="bubble-label">Nota</div>
+              <div className="bubble-label-row">
+                <div className="bubble-label">Nota</div>
+                <div className="bubble-time">{formatTime(event.createdAt)}</div>
+              </div>
               <div className="bubble-text">{n.text}</div>
             </div>
           );
