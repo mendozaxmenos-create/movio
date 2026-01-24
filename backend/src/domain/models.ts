@@ -2,6 +2,7 @@ export type ISODate = string; // YYYY-MM-DD
 
 export type MealType = 'desayuno' | 'almuerzo' | 'snack' | 'cena' | 'otro';
 export type PortionSize = 'chico' | 'medio' | 'grande';
+export type MealKind = 'plan' | 'real';
 
 export type MealContextTag =
   | 'normal'
@@ -14,6 +15,7 @@ export interface Meal {
   id: string;
   day: ISODate;
   type: MealType;
+  kind: MealKind;
   items: string[]; // texto libre corto
   portionSize: PortionSize;
   contextTags: MealContextTag[];
@@ -75,5 +77,36 @@ export interface DayBehaviorKpis {
   hasDeviation: boolean; // hay no_planificado
   hasRecovery: boolean; // hay recuperacion
   hasSocialContext: boolean; // evento_social / uso_sobras
+}
+
+export type TimelineEventType = 'meal' | 'activity' | 'weight' | 'note' | 'coach_message';
+
+export interface CoachMessage {
+  id: string;
+  day: ISODate;
+  createdAt: string;
+  text: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  day: ISODate;
+  createdAt: string;
+  type: TimelineEventType;
+  data:
+    | { kind: 'meal'; meal: Meal }
+    | { kind: 'activity'; activity: ActivitySession }
+    | { kind: 'weight'; weight: WeightEntry }
+    | { kind: 'note'; note: DayNotes }
+    | { kind: 'coach_message'; message: CoachMessage };
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  quantityApprox: number;
+  unit?: string;
+  expiresAt?: string; // ISODate aproximada
+  createdAt: string;
 }
 

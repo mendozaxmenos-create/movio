@@ -1,4 +1,13 @@
-import { DayLog, ISODate, Meal, ActivitySession, WeightEntry, DayNotes } from '../domain/models';
+import {
+  ActivitySession,
+  CoachMessage,
+  DayLog,
+  DayNotes,
+  ISODate,
+  InventoryItem,
+  Meal,
+  WeightEntry,
+} from '../domain/models';
 
 /**
  * Interfaz de repositorio para permitir cambiar fácilmente de
@@ -12,6 +21,10 @@ export interface DayLogRepository {
   upsertNotes(day: ISODate, notes: DayNotes): Promise<void>;
   listDays(from: ISODate, to: ISODate): Promise<DayLog[]>;
   listWeightEntries(): Promise<WeightEntry[]>;
+  addCoachMessage(day: ISODate, message: CoachMessage): Promise<void>;
+  listCoachMessages(day: ISODate): Promise<CoachMessage[]>;
+  addInventoryItem(item: InventoryItem): Promise<void>;
+  listInventory(): Promise<InventoryItem[]>;
 }
 
 /**
@@ -20,6 +33,8 @@ export interface DayLogRepository {
  */
 export class InMemoryDayLogRepository implements DayLogRepository {
   private days: Map<ISODate, DayLog> = new Map();
+  private coachMessages: Map<ISODate, CoachMessage[]> = new Map();
+  private inventory: InventoryItem[] = [];
 
   private getOrCreateDay(day: ISODate): DayLog {
     const existing = this.days.get(day);
@@ -81,6 +96,25 @@ export class InMemoryDayLogRepository implements DayLogRepository {
       }
     }
     return entries.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+  }
+
+  async addCoachMessage(day: ISODate, message: CoachMessage): Promise<void> {
+    const existing = this.coachMessages.get(day) ?? [];
+    existing.push(message);
+    this.coachMessages.set(day, existing);
+  }
+
+  async listCoachMessages(day: ISODate): Promise<CoachMessage[]> {
+    const list = this.coachMessages.get(day) ?? [];
+    return [...list].sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
+  }
+
+  async addInventoryItem(item: InventoryItem): Promise<void> {
+    this.inventory.push(item);
+  }
+
+  async listInventory(): Promise<InventoryItem[]> {
+    return [...this.inventory];
   }
 }
 

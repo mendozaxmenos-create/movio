@@ -168,10 +168,16 @@ Ver detalles en `docs/ux.md`, pero el MVP incluye:
 El backend expone una API REST simple:
 
 - `POST /days/:date/meals` — registrar comida
+- `POST /days/:date/meals/plan` — registrar comida planificada (ej. “esto es lo que voy a cenar”)
 - `POST /days/:date/activities` — registrar actividad
 - `POST /days/:date/weight` — registrar peso
 - `GET /days/:date` — obtener día con estado y KPIs base
 - `GET /summary` — KPIs de rango (ej. última semana)
+- `GET /days/:date/timeline` — timeline del día (comidas, actividad, peso, nota, mensajes del coach)
+- `POST /days/:date/messages` — enviar mensaje al coach (stub, futuro AI)
+- `POST /inventory` / `GET /inventory` — inventario simple de alimentos / sobras
+- `GET /stats/overview` — resumen de días y estados en un rango
+- `GET /stats/deviations` — listado de días con desvíos y si hubo recuperación
 
 Persistencia:
 
