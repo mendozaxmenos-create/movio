@@ -23,6 +23,38 @@ export async function generateCoachReply(context: CoachContext): Promise<string>
     return 'Buen día. Vamos a sumar decisiones tranquilas hoy, sin buscar perfección.';
   }
 
+  // Registro de comida recién hecha
+  if (text.includes('acabo de comer')) {
+    return 'Gracias por registrar lo que comiste. Una comida aislada no define el día; la clave es cómo acomodamos las próximas decisiones.';
+  }
+
+  // Comida planificada
+  if (text.includes('voy a comer esto más tarde') || text.includes('voy a comer esto mas tarde')) {
+    return 'Buen plan. Si más adelante ves que el día se carga un poco, siempre podemos ajustar porción o acompañamientos sin dramatizar.';
+  }
+
+  // Registro de ejercicio
+  if (text.includes('este fue mi ejercicio') || text.includes('ejercicio:')) {
+    return 'Actividad sumada. Ese movimiento ayuda a equilibrar el resto del día sin necesidad de extremismos.';
+  }
+
+  // Registro de peso del día
+  if (text.includes('el peso de hoy es')) {
+    return 'Peso del día registrado. Lo vamos a mirar como parte de la tendencia de varias semanas, no como un juicio de hoy.';
+  }
+
+  // Nota del día / estado anímico
+  if (
+    text.includes('nota del día') ||
+    text.includes('nota del dia') ||
+    text.includes('estoy cansado') ||
+    text.includes('estoy cansada') ||
+    text.includes('dormí poco') ||
+    text.includes('dormi poco')
+  ) {
+    return 'Tomado. Tu energía y tu descanso también cuentan: en días más cansados buscamos decisiones razonables, no perfectas.';
+  }
+
   // Preguntas sobre "cómo venimos"
   if (text.includes('cómo vengo') || text.includes('como vengo') || text.includes('como venimos')) {
     const decision = computeDayDecisionSummary(context.dayLog);
@@ -73,11 +105,11 @@ export async function generateCoachReply(context: CoachContext): Promise<string>
 
   const decision = computeDayDecisionSummary(context.dayLog);
   if (!decision) {
-    return 'Todavía el día está casi vacío. Con que registres 1-2 decisiones importantes ya estamos sumando.';
+    return 'Te leo. Cada cosa que registres nos ayuda a entender mejor tu contexto para ajustar el plan sin juicios.';
   }
 
   if (decision.status === 'verde') {
-    return 'El día viene bien gestionado. Podés permitirte flexibilidad mientras mantengamos esta dirección.';
+    return 'El día viene bien gestionado. Podés permitirte algo de flexibilidad mientras mantengamos esta dirección general.';
   }
 
   if (decision.status === 'amarillo') {
