@@ -1,0 +1,133 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.screen {
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at top left, #1f2937 0, #020617 45%, #000 100%);
+  color: #f9fafb;
+}
+
+.screen-header {
+  padding: 16px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.screen-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.screen-subtitle {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.screen-chip {
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.screen-chip:hover {
+  background: #030712;
+}
+
+.screen-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.screen-footer {
+  border-top: 1px solid #111827;
+  padding: 8px 8px 12px;
+  background: rgba(2, 6, 23, 0.98);
+}
+
+.status {
+  padding: 16px;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.status-error {
+  color: #fecaca;
+}
+
+.message-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.message-input input {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  background: #020617;
+  color: #f9fafb;
+}
+
+.message-input input::placeholder {
+  color: #6b7280;
+}
+
+.message-input button {
+  border-radius: 999px;
+  border: none;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  background: #22c55e;
+  color: #022c22;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.message-input button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.quick-actions button {
+  flex: 1 1 auto;
+  min-width: 70px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.quick-actions button:hover {
+  background: #030712;
+}
+

@@ -1,0 +1,46 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 12px 80px;
+}
+
+.timeline-empty {
+  padding: 16px;
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.bubble-user {
+  margin-left: auto;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.bubble-coach {
+  margin-right: auto;
+  background: #111827;
+  border: 1px solid #1f2937;
+  color: #e5e7eb;
+}
+
+.bubble-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+
+.bubble-text {
+  white-space: pre-wrap;
+}
+
