@@ -54,6 +54,17 @@ export function Timeline({ events }: Props) {
 
         if (event.type === 'activity') {
           const a = event.data.activity;
+          const parts: string[] = [];
+          if (typeof a.durationMinutes === 'number') {
+            parts.push(`${a.durationMinutes} min`);
+          }
+          if (typeof a.distanceKm === 'number') {
+            parts.push(`${a.distanceKm} km`);
+          }
+          if (typeof a.caloriesBurned === 'number') {
+            parts.push(`${a.caloriesBurned} kcal quemadas`);
+          }
+
           return (
             <div key={event.id} className="bubble bubble-user">
               <div className="bubble-label-row">
@@ -61,7 +72,7 @@ export function Timeline({ events }: Props) {
                 <div className="bubble-time">{formatTime(event.createdAt)}</div>
               </div>
               <div className="bubble-text">
-                {a.durationMinutes} min · intensidad {a.intensity}
+                {parts.length > 0 ? parts.join(' · ') : 'Actividad registrada'} · intensidad {a.intensity}
               </div>
             </div>
           );

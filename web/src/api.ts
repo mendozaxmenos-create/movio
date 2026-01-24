@@ -55,13 +55,22 @@ export async function registerMeal(day: string, payload: { type: string; items: 
   return handleJson<unknown>(res);
 }
 
-export async function registerActivity(day: string, payload: { type: string; durationMinutes: number }) {
+export async function registerActivity(day: string, payload: {
+  type: string;
+  durationMinutes?: number;
+  distanceKm?: number;
+  caloriesBurned?: number;
+  caloriesTotal?: number;
+}) {
   const res = await fetch(`${API_BASE_URL}/days/${day}/activities`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       type: payload.type,
       durationMinutes: payload.durationMinutes,
+      distanceKm: payload.distanceKm,
+      caloriesBurned: payload.caloriesBurned,
+      caloriesTotal: payload.caloriesTotal,
       intensity: 'media',
     }),
   });

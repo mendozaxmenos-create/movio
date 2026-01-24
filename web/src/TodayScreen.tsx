@@ -63,12 +63,25 @@ export function TodayScreen() {
   async function handleRegisterActivity() {
     const what = window.prompt('¿Qué actividad hiciste? bici / caminata / natacion / gym / otro', 'caminata');
     if (!what) return;
-    const minutesRaw = window.prompt('¿Cuántos minutos?', '30');
-    if (!minutesRaw) return;
-    const minutes = Number(minutesRaw);
-    if (!Number.isFinite(minutes) || minutes <= 0) return;
-    await registerActivity(day, { type: what.toLowerCase(), durationMinutes: minutes });
-    await askShortPrompt(`Este fue mi ejercicio: ${minutes} minutos de ${what}`);
+    const minutesRaw = window.prompt('¿Cuántos minutos? (podés dejarlo vacío)', '');
+    const distanceRaw = window.prompt('¿Qué distancia hiciste en km? (opcional)', '');
+    const caloriesBurnedRaw = window.prompt('Calorías quemadas (opcional)', '');
+    const caloriesTotalRaw = window.prompt('Calorías totales de la sesión si tu app las muestra (opcional)', '');
+
+    const minutes = minutesRaw ? Number(minutesRaw.replace(',', '.')) : undefined;
+    const distanceKm = distanceRaw ? Number(distanceRaw.replace(',', '.')) : undefined;
+    const caloriesBurned = caloriesBurnedRaw ? Number(caloriesBurnedRaw.replace(',', '.')) : undefined;
+    const caloriesTotal = caloriesTotalRaw ? Number(caloriesTotalRaw.replace(',', '.')) : undefined;
+
+    await registerActivity(day, {
+      type: what.toLowerCase(),
+      durationMinutes: Number.isFinite(minutes as number) && (minutes as number) > 0 ? (minutes as number) : undefined,
+      distanceKm: Number.isFinite(distanceKm as number) && (distanceKm as number) > 0 ? (distanceKm as number) : undefined,
+      caloriesBurned: Number.isFinite(caloriesBurned as number) && (caloriesBurned as number) > 0 ? (caloriesBurned as number) : undefined,
+      caloriesTotal: Number.isFinite(caloriesTotal as number) && (caloriesTotal as number) > 0 ? (caloriesTotal as number) : undefined,
+    });
+
+    await askShortPrompt(`Este fue mi ejercicio: ${minutesRaw || 'sin tiempo específico'} de ${what}`);
   }
 
   async function handleRegisterWeight() {

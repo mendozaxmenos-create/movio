@@ -28,10 +28,11 @@ const mealSchema = z.object({
 
 const activitySchema = z.object({
   type: z.custom<ActivityType>().transform(v => v as ActivityType),
-  durationMinutes: z.number().int().positive(),
+  durationMinutes: z.number().int().positive().optional(),
   distanceKm: z.number().positive().optional(),
   intensity: z.custom<ActivityIntensity>().transform(v => v as ActivityIntensity),
-  calories: z.number().positive().optional(),
+  caloriesBurned: z.number().positive().optional(),
+  caloriesTotal: z.number().positive().optional(),
 });
 
 const weightSchema = z.object({
@@ -163,7 +164,8 @@ export function buildHttpApp(repo: DayLogRepository) {
       durationMinutes: body.durationMinutes,
       distanceKm: body.distanceKm,
       intensity: body.intensity,
-      calories: body.calories,
+      caloriesBurned: body.caloriesBurned,
+      caloriesTotal: body.caloriesTotal,
       createdAt,
     });
 

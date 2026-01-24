@@ -29,10 +29,11 @@ export interface ActivitySession {
   id: string;
   day: ISODate;
   type: ActivityType;
-  durationMinutes: number;
+  durationMinutes?: number;
   distanceKm?: number;
   intensity: ActivityIntensity;
-  calories?: number;
+  caloriesBurned?: number;
+  caloriesTotal?: number;
   attachmentPath?: string;
   createdAt: string;
 }

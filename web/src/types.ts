@@ -15,10 +15,11 @@ export interface ActivitySession {
   id: string;
   day: ISODate;
   type: 'bici' | 'caminata' | 'natacion' | 'gym' | 'otro';
-  durationMinutes: number;
+  durationMinutes?: number;
   distanceKm?: number;
   intensity: 'baja' | 'media' | 'alta';
-  calories?: number;
+  caloriesBurned?: number;
+  caloriesTotal?: number;
   createdAt: string;
 }
 
