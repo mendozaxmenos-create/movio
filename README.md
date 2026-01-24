@@ -1,6 +1,16 @@
-## Movio — MVP Hábitos y Salud
+## Movio — Hábitos y salud en la vida real
 
-Movio es un acompañante diario de hábitos y salud, no una app de dieta. Este repositorio contiene el MVP con foco en:
+Movio es un acompañante diario de hábitos y salud, no una app de dieta. Está pensada para personas que quieren **vivir mejor todos los días** sin obsesionarse con calorías, balanzas ni prohibiciones.
+
+Como usuario, Movio te ayuda a:
+
+- **Registrar tu día de forma simple**: qué comiste, qué ejercicio hiciste, cómo dormiste o cómo te sentís.
+- **Tomar mejores decisiones en contexto**: qué conviene almorzar si a la noche tenés un asado, cómo usar las sobras sin salir del plan, qué comer cuando tenés hambre a media tarde.
+- **Ver la película completa, no una foto suelta**: tendencia de peso en semanas, consistencia de actividad, días en los que te desviaste y si los corregiste.
+
+Todo con lenguaje calmo, sin culpa y sin juicios.
+
+Este repositorio contiene el MVP técnico de Movio con foco en:
 
 - **Registro diario rápido**
 - **Motor de decisiones sin juicio (verde / amarillo / rojo)**
