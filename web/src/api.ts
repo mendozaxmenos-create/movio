@@ -1,4 +1,4 @@
-import type { TimelineResponse } from './types';
+import type { InventoryItem, ShoppingListResponse, TimelineResponse } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
@@ -93,6 +93,42 @@ export async function registerNote(day: string, text: string) {
     body: JSON.stringify({ text }),
   });
   return handleJson<unknown>(res);
+}
+
+export async function fetchInventory(): Promise<{ items: InventoryItem[] }> {
+  const res = await fetch(`${API_BASE_URL}/inventory`);
+  return handleJson<{ items: InventoryItem[] }>(res);
+}
+
+export async function addInventoryItem(payload: {
+  name: string;
+  quantityApprox: number;
+  unit?: string;
+  expiresAt?: string;
+}) {
+  const res = await fetch(`${API_BASE_URL}/inventory`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleJson<{ id: string; createdAt: string }>(res);
+}
+
+function isoDaysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export async function fetchShoppingList(forDays = 3): Promise<ShoppingListResponse> {
+  const to = todayAsIso();
+  const from = isoDaysAgo(6);
+  const params = new URLSearchParams({ from, to, forDays: String(forDays) });
+  const res = await fetch(`${API_BASE_URL}/shopping-list?${params.toString()}`);
+  return handleJson<ShoppingListResponse>(res);
 }
 
 

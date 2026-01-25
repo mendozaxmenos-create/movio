@@ -92,3 +92,27 @@ export interface TimelineResponse {
   events: TimelineEvent[];
 }
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  quantityApprox: number;
+  unit?: string;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface ShoppingListItem {
+  name: string;
+  suggestedQty: number;
+  unit?: string;
+}
+
+export interface ShoppingListResponse {
+  shoppingList: {
+    from: ISODate;
+    to: ISODate;
+    forDays: number;
+    items: ShoppingListItem[];
+  };
+}
+

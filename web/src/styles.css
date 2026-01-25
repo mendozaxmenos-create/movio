@@ -37,6 +37,12 @@ body {
   margin-top: 2px;
 }
 
+.screen-chip-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .screen-chip {
   border-radius: 999px;
   border: 1px solid #1f2937;
@@ -129,5 +135,68 @@ body {
 
 .quick-actions button:hover {
   background: #030712;
+}
+
+.section {
+  padding: 12px 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.section-action {
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.section-action:hover {
+  background: #030712;
+}
+
+.section-empty {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #111827;
+}
+
+.list-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.list-name {
+  color: #e5e7eb;
+}
+
+.list-qty {
+  color: #9ca3af;
+  font-size: 0.8rem;
 }
 

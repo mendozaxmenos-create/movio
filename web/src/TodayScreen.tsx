@@ -5,7 +5,11 @@ import { QuickActions } from './components/QuickActions';
 import { fetchTimeline, getDefaultDay, registerActivity, registerMeal, registerNote, registerWeight, sendCoachMessage } from './api';
 import type { TimelineEvent } from './types';
 
-export function TodayScreen() {
+interface Props {
+  onGoToInventory?: () => void;
+}
+
+export function TodayScreen({ onGoToInventory }: Props) {
   const [day] = useState<string>(() => getDefaultDay());
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,9 +113,16 @@ export function TodayScreen() {
             Un día a la vez. Movio te ayuda a decidir, no a juzgar.
           </div>
         </div>
-        <button className="screen-chip" onClick={() => askShortPrompt('Quiero que me digas cómo vengo hoy en general.')}>
-          ¿Cómo vengo?
-        </button>
+        <div className="screen-chip-row">
+          <button className="screen-chip" onClick={() => askShortPrompt('Quiero que me digas cómo vengo hoy en general.')}>
+            ¿Cómo vengo?
+          </button>
+          {onGoToInventory && (
+            <button className="screen-chip" onClick={onGoToInventory}>
+              Compras
+            </button>
+          )}
+        </div>
       </header>
       <main className="screen-main">
         {loading && <div className="status">Cargando día...</div>}
