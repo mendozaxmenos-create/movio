@@ -24,6 +24,7 @@ export function TodayScreen({ onGoToInventory }: Props) {
   const [activityDistance, setActivityDistance] = useState('');
   const [activityKcal, setActivityKcal] = useState('');
   const [weightText, setWeightText] = useState('');
+  const [weightDate, setWeightDate] = useState<string>(() => getDefaultDay());
   const [noteText, setNoteText] = useState('');
 
   async function loadTimeline() {
@@ -94,8 +95,9 @@ export function TodayScreen({ onGoToInventory }: Props) {
     if (!trimmed) return;
     const weight = Number(trimmed.replace(',', '.'));
     if (!Number.isFinite(weight) || weight <= 0) return;
-    await registerWeight(day, weight);
-    await askShortPrompt(`El peso de hoy es ${weight} kg, registralo para seguir la tendencia.`);
+    const targetDay = weightDate || day;
+    await registerWeight(targetDay, weight);
+    await askShortPrompt(`El peso del ${targetDay} es ${weight} kg, registralo para seguir la tendencia.`);
     setWeightText('');
     setActiveForm(null);
   }
@@ -235,9 +237,14 @@ export function TodayScreen({ onGoToInventory }: Props) {
                 <div className="form-title">Registrar peso</div>
                 <div className="form-row">
                   <input
+                    type="date"
+                    value={weightDate}
+                    onChange={e => setWeightDate(e.target.value)}
+                  />
+                  <input
                     type="text"
                     inputMode="decimal"
-                    placeholder="Peso de hoy (kg)"
+                    placeholder="Peso (kg)"
                     value={weightText}
                     onChange={e => setWeightText(e.target.value)}
                   />
