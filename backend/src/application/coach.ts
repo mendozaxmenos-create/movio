@@ -68,20 +68,39 @@ export async function generateCoachReply(context: CoachContext): Promise<string>
       const managed = deviations.filter(d => d.hasRecovery).length;
       const unmanaged = deviations.filter(d => !d.hasRecovery).length;
 
-      let weightPart = '';
-      if (context.weightTrendDirection && context.weightTrendDirection !== 'insuficiente_datos') {
-        if (context.weightTrendDirection === 'baja') {
-          weightPart = 'La tendencia de peso viene bajando suavemente, que es lo que buscamos a largo plazo.';
-        } else if (context.weightTrendDirection === 'estable') {
-          weightPart = 'La tendencia de peso está bastante estable; con pequeñas mejoras en consistencia podemos empezar a ver una baja suave.';
-        } else {
-          weightPart = 'La tendencia de peso viene subiendo un poco. No es dramático, pero vale la pena cuidar algunas decisiones clave de la semana.';
-        }
+      let behaviorPart: string;
+      if (overview.daysWithLogs === 0) {
+        behaviorPart =
+          'En estos días casi no registraste nada. El foco ahora es simplemente anotar 1 o 2 decisiones importantes por día, sin buscar perfección.';
+      } else if (overview.greenDays >= overview.yellowDays + overview.redDays) {
+        behaviorPart =
+          'La mayoría de los días que registraste estuvieron bien gestionados. Eso muestra que tu dirección general es buena, aunque haya momentos puntuales más desordenados.';
+      } else if (managed >= unmanaged) {
+        behaviorPart =
+          'Tuviste varios desvíos, pero en más de la mitad lograste corregir después. Eso es exactamente lo que buscamos: no evitar todos los desvíos, sino aprender a acomodarlos.';
       } else {
-        weightPart = 'Todavía no hay suficientes datos de peso como para hablar de tendencia; enfoquémonos en la consistencia diaria.';
+        behaviorPart =
+          'En estos días hubo varios desvíos que no pudiste corregir del todo. No es un drama: es una señal de que conviene elegir 1 o 2 momentos claves para cuidar un poco más (por ejemplo la noche o los eventos sociales).';
       }
 
-      return `En los últimos ${overview.daysCount} días registraste ${overview.daysWithLogs} días con datos: ${overview.greenDays} verdes, ${overview.yellowDays} amarillos y ${overview.redDays} rojos. Hubo ${managed} días con desvíos corregidos y ${unmanaged} con desvíos que todavía no se corrigieron del todo. ${weightPart}`;
+      let weightPart: string;
+      if (context.weightTrendDirection && context.weightTrendDirection !== 'insuficiente_datos') {
+        if (context.weightTrendDirection === 'baja') {
+          weightPart =
+            'La tendencia de peso viene bajando suavemente, que es exactamente lo que buscamos a varias semanas, no de un día para el otro.';
+        } else if (context.weightTrendDirection === 'estable') {
+          weightPart =
+            'El peso está bastante estable. Con pequeñas mejoras en consistencia (sobre todo en las noches y eventos) podemos empezar a ver una baja suave.';
+        } else {
+          weightPart =
+            'La tendencia de peso viene subiendo un poco. No es dramático, pero es una buena señal para cuidar 1 o 2 decisiones por día y evitar “sumar de más” seguido.';
+        }
+      } else {
+        weightPart =
+          'Todavía no hay suficientes datos de peso como para hablar de tendencia. Por ahora enfoquémonos en registrar y mantener una estructura de comidas razonable.';
+      }
+
+      return `${behaviorPart} ${weightPart}`;
     }
 
     // Fallback a sólo el día actual si por algún motivo no tenemos historial.
