@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import {
   ActivitySession,
   CoachMessage,
@@ -115,6 +117,134 @@ export class InMemoryDayLogRepository implements DayLogRepository {
 
   async listInventory(): Promise<InventoryItem[]> {
     return [...this.inventory];
+  }
+}
+
+interface PersistedData {
+  days: DayLog[];
+  coachMessages: CoachMessage[];
+  inventory: InventoryItem[];
+}
+
+/**
+ * Repositorio que persiste en disco usando un archivo JSON sencillo.
+ * No es una base de datos real, pero evita que se pierdan los datos
+ * al reiniciar el servidor durante el desarrollo / MVIP.
+ */
+export class DiskDayLogRepository implements DayLogRepository {
+  private inner: InMemoryDayLogRepository;
+  private filePath: string;
+
+  constructor(filePath?: string) {
+    this.filePath = filePath ?? path.join(process.cwd(), 'data', 'movio-data.json');
+    this.ensureDataDir();
+    this.inner = new InMemoryDayLogRepository();
+    this.loadFromDisk();
+  }
+
+  private ensureDataDir() {
+    const dir = path.dirname(this.filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  }
+
+  private loadFromDisk() {
+    if (!fs.existsSync(this.filePath)) return;
+    try {
+      const raw = fs.readFileSync(this.filePath, 'utf-8');
+      const data = JSON.parse(raw) as PersistedData;
+      // Reconstruimos el repositorio en memoria
+      for (const day of data.days ?? []) {
+        // upsertMeal/upsertActivity/upsertWeight/upsertNotes ya crean el día
+        for (const meal of day.meals ?? []) {
+          void this.inner.upsertMeal(day.day, meal);
+        }
+        for (const act of day.activities ?? []) {
+          void this.inner.upsertActivity(day.day, act);
+        }
+        if (day.weight) {
+          void this.inner.upsertWeight(day.day, day.weight);
+        }
+        if (day.notes) {
+          void this.inner.upsertNotes(day.day, day.notes);
+        }
+      }
+      for (const msg of data.coachMessages ?? []) {
+        void this.inner.addCoachMessage(msg.day, msg);
+      }
+      for (const item of data.inventory ?? []) {
+        void this.inner.addInventoryItem(item);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('No se pudo leer movio-data.json, empezamos vacío.', e);
+    }
+  }
+
+  private async saveToDisk() {
+    const days = await this.inner.listDays('0000-01-01', '9999-12-31');
+    // Coach messages e inventario no tienen un list global, así que persistimos desde inner
+    // accediendo a sus campos privados no es posible, así que reconstruimos a partir de las APIs.
+    // Dado que no tenemos un método para listar TODOS los mensajes, vamos a persistir sólo days e inventory.
+    // TODO: si en el futuro los mensajes del coach son críticos, extender la interfaz para listarlos todos.
+    const inventory = await this.inner.listInventory();
+    const data: PersistedData = {
+      days,
+      coachMessages: [],
+      inventory,
+    };
+    fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
+  }
+
+  async getDay(day: ISODate): Promise<DayLog | null> {
+    return this.inner.getDay(day);
+  }
+
+  async upsertMeal(day: ISODate, meal: Meal): Promise<void> {
+    await this.inner.upsertMeal(day, meal);
+    await this.saveToDisk();
+  }
+
+  async upsertActivity(day: ISODate, activity: ActivitySession): Promise<void> {
+    await this.inner.upsertActivity(day, activity);
+    await this.saveToDisk();
+  }
+
+  async upsertWeight(day: ISODate, weight: WeightEntry): Promise<void> {
+    await this.inner.upsertWeight(day, weight);
+    await this.saveToDisk();
+  }
+
+  async upsertNotes(day: ISODate, notes: DayNotes): Promise<void> {
+    await this.inner.upsertNotes(day, notes);
+    await this.saveToDisk();
+  }
+
+  async listDays(from: ISODate, to: ISODate): Promise<DayLog[]> {
+    return this.inner.listDays(from, to);
+  }
+
+  async listWeightEntries(): Promise<WeightEntry[]> {
+    return this.inner.listWeightEntries();
+  }
+
+  async addCoachMessage(day: ISODate, message: CoachMessage): Promise<void> {
+    await this.inner.addCoachMessage(day, message);
+    // Por simplicidad, no los persistimos aún (se recalcularán al reiniciar según se necesite).
+  }
+
+  async listCoachMessages(day: ISODate): Promise<CoachMessage[]> {
+    return this.inner.listCoachMessages(day);
+  }
+
+  async addInventoryItem(item: InventoryItem): Promise<void> {
+    await this.inner.addInventoryItem(item);
+    await this.saveToDisk();
+  }
+
+  async listInventory(): Promise<InventoryItem[]> {
+    return this.inner.listInventory();
   }
 }
 

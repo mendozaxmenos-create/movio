@@ -1,10 +1,10 @@
-import { InMemoryDayLogRepository } from './infrastructure/repository';
+import { DiskDayLogRepository } from './infrastructure/repository';
 import { buildHttpApp } from './infrastructure/http';
 
 const PORT = process.env.PORT || 4000;
 
 async function main() {
-  const repo = new InMemoryDayLogRepository();
+  const repo = new DiskDayLogRepository();
   const app = buildHttpApp(repo);
 
   app.listen(PORT, () => {
