@@ -58,6 +58,19 @@ function isIsoDate(value: string): value is ISODate {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+function offsetIsoDate(base: ISODate, deltaDays: number): ISODate {
+  const [yearStr, monthStr, dayStr] = base.split('-');
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+  const d = new Date(year, month - 1, day);
+  d.setDate(d.getDate() + deltaDays);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
 export function buildHttpApp(repo: DayLogRepository) {
   const app = express();
   app.use(cors());
@@ -331,9 +344,21 @@ export function buildHttpApp(repo: DayLogRepository) {
 
     const dayLog = await repo.getDay(day);
 
+    // Historial reciente para que el coach pueda responder preguntas tipo "cómo vengo"
+    const rangeTo = day;
+    const rangeFrom = offsetIsoDate(day, -6);
+    const recentDays = await repo.listDays(rangeFrom, rangeTo);
+
+    const weightEntries = await repo.listWeightEntries();
+    const weightTrend = computeWeightTrend(weightEntries);
+
     const replyText = await generateCoachReply({
       dayLog,
       userMessage: body.text,
+      recentDays,
+      rangeFrom,
+      rangeTo,
+      weightTrendDirection: weightTrend.direction,
     });
 
     const id = `coach_${Date.now()}_${Math.random().toString(16).slice(2)}`;

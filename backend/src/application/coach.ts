@@ -1,9 +1,14 @@
-import { DayLog } from '../domain/models';
+import { DayLog, ISODate, WeightTrendDirection } from '../domain/models';
 import { computeDayBehaviorKpis, computeDayDecisionSummary } from '../domain/decisions';
+import { computeOverviewStats, listDeviationDays } from './stats';
 
 export interface CoachContext {
   dayLog: DayLog | null;
   userMessage: string;
+  recentDays?: DayLog[];
+  rangeFrom?: ISODate;
+  rangeTo?: ISODate;
+  weightTrendDirection?: WeightTrendDirection;
 }
 
 /**
@@ -57,6 +62,29 @@ export async function generateCoachReply(context: CoachContext): Promise<string>
 
   // Preguntas sobre "cómo venimos"
   if (text.includes('cómo vengo') || text.includes('como vengo') || text.includes('como venimos')) {
+    if (context.recentDays && context.recentDays.length > 0 && context.rangeFrom && context.rangeTo) {
+      const overview = computeOverviewStats(context.rangeFrom, context.rangeTo, context.recentDays);
+      const deviations = listDeviationDays(context.recentDays);
+      const managed = deviations.filter(d => d.hasRecovery).length;
+      const unmanaged = deviations.filter(d => !d.hasRecovery).length;
+
+      let weightPart = '';
+      if (context.weightTrendDirection && context.weightTrendDirection !== 'insuficiente_datos') {
+        if (context.weightTrendDirection === 'baja') {
+          weightPart = 'La tendencia de peso viene bajando suavemente, que es lo que buscamos a largo plazo.';
+        } else if (context.weightTrendDirection === 'estable') {
+          weightPart = 'La tendencia de peso está bastante estable; con pequeñas mejoras en consistencia podemos empezar a ver una baja suave.';
+        } else {
+          weightPart = 'La tendencia de peso viene subiendo un poco. No es dramático, pero vale la pena cuidar algunas decisiones clave de la semana.';
+        }
+      } else {
+        weightPart = 'Todavía no hay suficientes datos de peso como para hablar de tendencia; enfoquémonos en la consistencia diaria.';
+      }
+
+      return `En los últimos ${overview.daysCount} días registraste ${overview.daysWithLogs} días con datos: ${overview.greenDays} verdes, ${overview.yellowDays} amarillos y ${overview.redDays} rojos. Hubo ${managed} días con desvíos corregidos y ${unmanaged} con desvíos que todavía no se corrigieron del todo. ${weightPart}`;
+    }
+
+    // Fallback a sólo el día actual si por algún motivo no tenemos historial.
     const decision = computeDayDecisionSummary(context.dayLog);
     const kpis = computeDayBehaviorKpis(context.dayLog);
 
