@@ -40,6 +40,9 @@ El repo se organiza en capas claras:
   - `src/domain/` — modelos de dominio y motor de decisiones
   - `src/application/` — casos de uso (registro, consulta, KPIs)
   - `src/infrastructure/` — HTTP, persistencia, wiring
+- `web/` — app web móvil (Vite + React) con:
+  - Pantalla `Hoy` tipo chat (timeline + acciones rápidas)
+  - Pantalla `Compras` (inventario + lista sugerida)
 - `docs/` — diseño de pantallas, flujos y notas de producto
 
 Pensado para:
@@ -192,8 +195,35 @@ El backend expone una API REST simple:
 
 Persistencia:
 
-- MVP: repositorio en memoria (para simplicidad)
-- Futuro: Supabase / Postgres con sync preparado (IDs de cliente, timestamps, `deletedAt`)
+- MVIP: repositorio en disco usando un JSON local (`data/movio-data.json`, ignorado por git) para no perder días e inventario entre reinicios de backend.
+- Futuro: Supabase / Postgres con sync preparado (IDs de cliente, timestamps, `deletedAt`).
+
+---
+
+## Cómo correr el proyecto localmente
+
+### Backend
+
+- Requisitos: Node 18+.
+- Comandos:
+
+```bash
+cd backend
+npm install
+npm run dev  # backend en http://localhost:4000
+```
+
+Los datos (días, peso, inventario) se guardan en `data/movio-data.json` y se mantienen entre reinicios mientras uses la misma carpeta.
+
+### Web (app tipo chat)
+
+```bash
+cd web
+npm install
+npm run dev  # web en http://localhost:5173
+```
+
+La web asume por defecto que el backend corre en `http://localhost:4000` (`VITE_API_BASE_URL`).
 
 ---
 
