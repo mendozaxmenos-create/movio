@@ -491,6 +491,25 @@ export function buildHttpApp(repo: DayLogRepository) {
     res.json({ shoppingList });
   });
 
+  // Endpoints de depuración para ver todos los días y pesos registrados.
+  // No pensados para uso de cliente final, pero muy útiles para validar que se está guardando todo.
+  app.get('/debug/days', async (req, res) => {
+    const from = (req.query.from as string | undefined) ?? '0000-01-01';
+    const to = (req.query.to as string | undefined) ?? '9999-12-31';
+    if (!isIsoDate(from) || !isIsoDate(to)) {
+      return res.status(400).json({
+        error: 'Parámetros inválidos, se esperan ?from=YYYY-MM-DD&to=YYYY-MM-DD',
+      });
+    }
+    const days = await repo.listDays(from, to);
+    res.json({ days });
+  });
+
+  app.get('/debug/weights', async (_req, res) => {
+    const weights = await repo.listWeightEntries();
+    res.json({ weights });
+  });
+
   return app;
 }
 
