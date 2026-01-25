@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Timeline } from './components/Timeline';
 import { MessageInput } from './components/MessageInput';
 import { QuickActions } from './components/QuickActions';
@@ -26,6 +26,7 @@ export function TodayScreen({ onGoToInventory }: Props) {
   const [weightText, setWeightText] = useState('');
   const [weightDate, setWeightDate] = useState<string>(() => getDefaultDay());
   const [noteText, setNoteText] = useState('');
+  const mainRef = useRef<HTMLDivElement | null>(null);
 
   async function loadTimeline() {
     setLoading(true);
@@ -44,6 +45,13 @@ export function TodayScreen({ onGoToInventory }: Props) {
     void loadTimeline();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [day]);
+
+  // Cada vez que cambian los eventos, hacemos scroll al final del timeline
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = mainRef.current.scrollHeight;
+    }
+  }, [events.length]);
 
   async function handleSendMessage(text: string) {
     await sendCoachMessage(day, text);
@@ -131,7 +139,7 @@ export function TodayScreen({ onGoToInventory }: Props) {
           )}
         </div>
       </header>
-      <main className="screen-main">
+      <main className="screen-main" ref={mainRef}>
         {loading && <div className="status">Cargando día...</div>}
         {error && <div className="status status-error">{error}</div>}
         {!loading && !error && <Timeline events={events} />}
