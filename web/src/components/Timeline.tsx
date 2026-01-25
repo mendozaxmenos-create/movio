@@ -20,9 +20,12 @@ export function Timeline({ events }: Props) {
     );
   }
 
+  // Para mantener la pantalla limpia, mostramos solo el último evento
+  const visible = events.slice(-1);
+
   return (
     <div className="timeline">
-      {events.map(event => {
+      {visible.map(event => {
         if (event.type === 'coach_message') {
           return (
             <div key={event.id} className="bubble bubble-coach">
