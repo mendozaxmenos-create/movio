@@ -321,10 +321,14 @@ export function buildHttpApp(repo: DayLogRepository) {
     if (!isIsoDate(day)) {
       return res.status(400).json({ error: 'Formato de día inválido, esperado YYYY-MM-DD' });
     }
-    const dayLog = await repo.getDay(day);
-    if (!dayLog) {
-      return res.status(404).json({ error: 'Día no encontrado' });
-    }
+    const existing = await repo.getDay(day);
+    const dayLog =
+      existing ??
+      ({
+        day,
+        meals: [],
+        activities: [],
+      } as const);
     const messages = await repo.listCoachMessages(day);
     const events = buildDayTimeline(dayLog, messages);
     res.json({ day: dayLog, events });
