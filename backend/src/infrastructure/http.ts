@@ -94,6 +94,16 @@ export function buildHttpApp(repo: DayLogRepository) {
   }
   const upload = multer({ dest: uploadsDir });
 
+  // Raíz: la web vive en Vercel; acá solo la API (evita "Cannot GET /" en Render)
+  app.get('/', (_req, res) => {
+    res.json({
+      service: 'movio-backend',
+      ok: true,
+      hint: 'La app está en Vercel. Esta URL es solo la API.',
+      health: '/health',
+    });
+  });
+
   // Healthcheck simple
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'movio-backend' });
