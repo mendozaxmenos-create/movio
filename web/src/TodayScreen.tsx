@@ -2,16 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { Timeline } from './components/Timeline';
 import { MessageInput } from './components/MessageInput';
 import { QuickActions } from './components/QuickActions';
-import { fetchTimeline, getDefaultDay, registerActivity, registerMeal, registerNote, registerWeight, sendCoachMessage } from './api';
+import { WeightHistoryPanel } from './components/WeightHistoryPanel';
+import {
+  fetchTimeline,
+  getDefaultDay,
+  postWeight,
+  registerActivity,
+  registerMeal,
+  registerNote,
+  sendCoachMessage,
+} from './api';
 import type { TimelineEvent } from './types';
 
 type ActiveForm = 'meal-real' | 'meal-plan' | 'activity' | 'weight' | 'note' | null;
 
-interface Props {
-  onGoToInventory?: () => void;
-}
-
-export function TodayScreen({ onGoToInventory }: Props) {
+export function TodayScreen() {
   const [day] = useState<string>(() => getDefaultDay());
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +30,10 @@ export function TodayScreen({ onGoToInventory }: Props) {
   const [activityKcal, setActivityKcal] = useState('');
   const [weightText, setWeightText] = useState('');
   const [weightDate, setWeightDate] = useState<string>(() => getDefaultDay());
+  const [inlineWeight, setInlineWeight] = useState('');
+  const [inlineDate, setInlineDate] = useState<string>(() => getDefaultDay());
+  const [weightSaving, setWeightSaving] = useState(false);
+  const [weightFeedback, setWeightFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const [noteText, setNoteText] = useState('');
   const mainRef = useRef<HTMLDivElement | null>(null);
 
@@ -67,11 +76,17 @@ export function TodayScreen({ onGoToInventory }: Props) {
     const trimmed = mealText.trim();
     if (!trimmed) return;
     await registerMeal(day, { type: mealType, items: [trimmed] });
-    await askShortPrompt(
-      kind === 'plan'
-        ? `Voy a comer esto más tarde: ${trimmed}`
-        : `Acabo de comer esto: ${trimmed}`,
-    );
+
+    let coachPrompt: string;
+    if (kind === 'plan') {
+      coachPrompt = `Voy a comer esto más tarde: ${trimmed}`;
+    } else if (mealType === 'desayuno') {
+      coachPrompt = `Desayuné: ${trimmed}. Sugerime ideas prácticas para el almuerzo, merienda y cena de hoy sin obsesionarme con números.`;
+    } else {
+      coachPrompt = `Acabo de comer esto: ${trimmed}`;
+    }
+
+    await askShortPrompt(coachPrompt);
     setMealText('');
     setActiveForm(null);
   }
@@ -98,16 +113,46 @@ export function TodayScreen({ onGoToInventory }: Props) {
     setActiveForm(null);
   }
 
+  async function saveWeightAndCoach(targetDay: string, weight: number) {
+    setWeightSaving(true);
+    setWeightFeedback(null);
+    try {
+      await postWeight(targetDay, weight);
+      await loadTimeline();
+      await askShortPrompt(`Peso de hoy registrado: ${weight} kg.`);
+      setWeightFeedback({
+        ok: true,
+        text: 'Guardado en la base de datos (nube).',
+      });
+    } catch {
+      setWeightFeedback({
+        ok: false,
+        text: 'No se pudo guardar. Revisá que la API esté en línea y la URL (VITE_API_BASE_URL) sea correcta.',
+      });
+    } finally {
+      setWeightSaving(false);
+    }
+  }
+
   async function handleSubmitWeight() {
     const trimmed = weightText.trim();
     if (!trimmed) return;
     const weight = Number(trimmed.replace(',', '.'));
     if (!Number.isFinite(weight) || weight <= 0) return;
     const targetDay = weightDate || day;
-    await registerWeight(targetDay, weight);
-    await askShortPrompt(`El peso del ${targetDay} es ${weight} kg, registralo para seguir la tendencia.`);
+    await saveWeightAndCoach(targetDay, weight);
     setWeightText('');
     setActiveForm(null);
+  }
+
+  async function handleSubmitInlineWeight() {
+    const trimmed = inlineWeight.trim();
+    if (!trimmed) return;
+    const weight = Number(trimmed.replace(',', '.'));
+    if (!Number.isFinite(weight) || weight <= 0) return;
+    const targetDay = inlineDate || day;
+    await saveWeightAndCoach(targetDay, weight);
+    setInlineWeight('');
   }
 
   async function handleSubmitNote() {
@@ -125,21 +170,50 @@ export function TodayScreen({ onGoToInventory }: Props) {
         <div>
           <div className="screen-title">Hoy</div>
           <div className="screen-subtitle">
-            Un día a la vez. Movio te ayuda a decidir, no a juzgar.
+            Peso → desayuno → sugerencias para el resto del día. Movio te ayuda a decidir, sin juicios.
           </div>
         </div>
         <div className="screen-chip-row">
           <button className="screen-chip" onClick={() => askShortPrompt('Quiero que me digas cómo vengo hoy en general.')}>
             ¿Cómo vengo?
           </button>
-          {onGoToInventory && (
-            <button className="screen-chip" onClick={onGoToInventory}>
-              Compras
-            </button>
-          )}
         </div>
       </header>
       <main className="screen-main" ref={mainRef}>
+        <div className="today-weight-block">
+          <div className="today-weight-block-title">1 · Peso de hoy</div>
+          <div className="today-weight-inline">
+            <input
+              type="date"
+              value={inlineDate}
+              onChange={e => setInlineDate(e.target.value)}
+              aria-label="Fecha del peso"
+            />
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="kg"
+              value={inlineWeight}
+              onChange={e => setInlineWeight(e.target.value)}
+              aria-label="Peso en kilogramos"
+            />
+            <button
+              type="button"
+              className="today-weight-save"
+              disabled={weightSaving}
+              onClick={() => void handleSubmitInlineWeight()}
+            >
+              {weightSaving ? 'Guardando…' : 'Guardar peso'}
+            </button>
+          </div>
+          {weightFeedback && (
+            <p className={`today-weight-feedback ${weightFeedback.ok ? 'ok' : 'err'}`}>{weightFeedback.text}</p>
+          )}
+          <p className="today-weight-hint">
+            Los datos viven en tu API (PostgreSQL en producción). No usamos almacenamiento local del navegador.
+          </p>
+          <WeightHistoryPanel />
+        </div>
         {loading && <div className="status">Cargando día...</div>}
         {error && <div className="status status-error">{error}</div>}
         {!loading && !error && <Timeline events={events} />}
@@ -293,6 +367,10 @@ export function TodayScreen({ onGoToInventory }: Props) {
         )}
         <QuickActions
           onSelectMeal={kind => setActiveForm(kind === 'plan' ? 'meal-plan' : 'meal-real')}
+          onSelectBreakfast={() => {
+            setMealType('desayuno');
+            setActiveForm('meal-real');
+          }}
           onSelectActivity={() => setActiveForm('activity')}
           onSelectWeight={() => setActiveForm('weight')}
           onSelectNote={() => setActiveForm('note')}

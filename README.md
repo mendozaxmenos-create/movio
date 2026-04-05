@@ -40,8 +40,9 @@ El repo se organiza en capas claras:
   - `src/domain/` — modelos de dominio y motor de decisiones
   - `src/application/` — casos de uso (registro, consulta, KPIs)
   - `src/infrastructure/` — HTTP, persistencia, wiring
-- `web/` — app web móvil (Vite + React) con:
+- `web/` — app web móvil (Vite + React + Tailwind) con:
   - Pantalla `Hoy` tipo chat (timeline + acciones rápidas)
+  - Pantalla `Peso` (dashboard de métricas, gráfico Recharts, objetivo y proyección)
   - Pantalla `Compras` (inventario + lista sugerida)
 - `docs/` — diseño de pantallas, flujos y notas de producto
 
@@ -193,10 +194,27 @@ El backend expone una API REST simple:
 - `GET /stats/deviations` — listado de días con desvíos y si hubo recuperación
 - `GET /shopping-list?from&to&forDays` — sugerencia de lista de compras mínima en base a tu consumo real y al inventario
 
+**Peso (REST + analítica)**
+
+- `GET /weights` / `POST /weights` — listar y crear `{ date, weight }` (compat. con modelo `{ id, date, weight }` usando `id` = fecha)
+- `DELETE /weights/:id` — borrar por fecha `YYYY-MM-DD`
+- `GET /weight/insights` — métricas, alertas, coach automático, objetivo y tendencia (lógica en `domain/weightAnalytics.ts`)
+- `GET /weight/projection` — pendiente (kg/día) y estimaciones a 7 / 14 / 30 días
+- `GET /settings` / `PUT /settings` — `targetWeightKg` y `startingWeightKg` opcionales (`null` limpia el campo)
+
 Persistencia:
 
-- MVIP: repositorio en disco usando un JSON local (`data/movio-data.json`, ignorado por git) para no perder días e inventario entre reinicios de backend.
-- Futuro: Supabase / Postgres con sync preparado (IDs de cliente, timestamps, `deletedAt`).
+- **Sin `DATABASE_URL`**: archivo local `data/movio-data.json` (desarrollo).
+- **Con `DATABASE_URL`**: PostgreSQL en la nube (Neon, Vercel Postgres, Supabase, etc.). El backend guarda un snapshot JSON en la tabla `movio_snapshot` (misma forma que el archivo local).
+
+La web **no usa `localStorage`** para peso ni datos: todo pasa por la API.
+
+### Vercel (frontend) + API en la nube
+
+1. Creá una base **Postgres** (Neon gratis, o [Vercel Storage → Postgres](https://vercel.com/docs/storage/vercel-postgres)) y copiá la cadena `DATABASE_URL`.
+2. Desplegá el **backend** donde puedas correr Node (Render, Railway, Fly.io, etc.) y definí ahí `DATABASE_URL` y opcionalmente `SKIP_SEED=1` para no cargar datos de demo en producción.
+3. En el proyecto **Vercel de la web**, en Environment Variables, definí `VITE_API_BASE_URL` con la URL pública de esa API (ej. `https://movio-api.onrender.com`).
+4. Rebuild del frontend. Ver `web/.env.example` y `backend/.env.example`.
 
 ---
 
@@ -215,7 +233,7 @@ npm run dev  # backend en http://localhost:4000
 
 Los datos (días, peso, inventario) se guardan en `data/movio-data.json` y se mantienen entre reinicios mientras uses la misma carpeta.
 
-### Web (app tipo chat)
+### Web (Hoy, Peso, Compras)
 
 ```bash
 cd web
@@ -223,7 +241,7 @@ npm install
 npm run dev  # web en http://localhost:5173
 ```
 
-La web asume por defecto que el backend corre en `http://localhost:4000` (`VITE_API_BASE_URL`).
+La web asume por defecto que el backend corre en `http://localhost:4000` (`VITE_API_BASE_URL`). Si no hay mediciones guardadas, el backend inserta un seed de demo al iniciar.
 
 ---
 

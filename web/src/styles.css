@@ -287,3 +287,120 @@ body {
   font-size: 0.8rem;
 }
 
+/* Peso en Hoy: bloque superior + historial opcional */
+.today-weight-block {
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid #111827;
+  background: rgba(2, 6, 23, 0.5);
+}
+
+.today-weight-block-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 6px;
+}
+
+.today-weight-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.today-weight-inline input[type='date'],
+.today-weight-inline input[type='text'] {
+  border-radius: 8px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #f9fafb;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+}
+
+.today-weight-inline input[type='text'] {
+  min-width: 88px;
+  max-width: 120px;
+}
+
+.today-weight-save {
+  border-radius: 999px;
+  border: none;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #22c55e;
+  color: #022c22;
+  cursor: pointer;
+}
+
+.today-weight-save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.today-weight-feedback {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+.today-weight-feedback.ok {
+  color: #86efac;
+}
+
+.today-weight-feedback.err {
+  color: #fecaca;
+}
+
+.today-weight-hint {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.today-weight-history {
+  margin-top: 10px;
+}
+
+.today-weight-history-body {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #111827;
+}
+
+.today-weight-chart-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.today-weight-chart-wrap {
+  height: 160px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #1f2937;
+  padding: 4px;
+  background: #020617;
+}
+
+.today-weight-table {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+
+.today-weight-table li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #111827;
+  color: #d1d5db;
+}
+

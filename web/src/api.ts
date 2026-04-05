@@ -1,4 +1,12 @@
-import type { InventoryItem, ShoppingListResponse, TimelineResponse } from './types';
+import type {
+  AppSettingsResponse,
+  InventoryItem,
+  ShoppingListResponse,
+  TimelineResponse,
+  WeightInsightsResponse,
+  WeightProjectionResponse,
+  WeightRecord,
+} from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
@@ -129,6 +137,62 @@ export async function fetchShoppingList(forDays = 3): Promise<ShoppingListRespon
   const params = new URLSearchParams({ from, to, forDays: String(forDays) });
   const res = await fetch(`${API_BASE_URL}/shopping-list?${params.toString()}`);
   return handleJson<ShoppingListResponse>(res);
+}
+
+export async function fetchWeights(): Promise<{ weights: WeightRecord[] }> {
+  const res = await fetch(`${API_BASE_URL}/weights`);
+  return handleJson<{ weights: WeightRecord[] }>(res);
+}
+
+export async function postWeight(date: string, weight: number): Promise<WeightRecord> {
+  const res = await fetch(`${API_BASE_URL}/weights`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date, weight }),
+  });
+  return handleJson<WeightRecord>(res);
+}
+
+export async function deleteWeightByDate(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/weights/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!res.ok) {
+    let details: unknown;
+    try {
+      details = await res.json();
+    } catch {
+      // ignore
+    }
+    const error = new Error('Error al eliminar el registro');
+    (error as { details?: unknown }).details = details;
+    throw error;
+  }
+}
+
+export async function fetchWeightInsights(): Promise<WeightInsightsResponse> {
+  const res = await fetch(`${API_BASE_URL}/weight/insights`);
+  return handleJson<WeightInsightsResponse>(res);
+}
+
+export async function fetchWeightProjection(): Promise<WeightProjectionResponse> {
+  const res = await fetch(`${API_BASE_URL}/weight/projection`);
+  return handleJson<WeightProjectionResponse>(res);
+}
+
+export async function fetchSettings(): Promise<AppSettingsResponse> {
+  const res = await fetch(`${API_BASE_URL}/settings`);
+  return handleJson<AppSettingsResponse>(res);
+}
+
+export async function putSettings(body: {
+  targetWeightKg?: number | null;
+  startingWeightKg?: number | null;
+}): Promise<AppSettingsResponse> {
+  const res = await fetch(`${API_BASE_URL}/settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return handleJson<AppSettingsResponse>(res);
 }
 
 

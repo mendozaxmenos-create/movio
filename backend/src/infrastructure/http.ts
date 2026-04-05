@@ -14,6 +14,7 @@ import {
   PortionSize,
 } from '../domain/models';
 import { computeDayDecisionSummary, computeWeightTrend } from '../domain/decisions';
+import { computeWeightInsights, computeWeightProjection } from '../domain/weightAnalytics';
 import { buildDayTimeline } from '../domain/timeline';
 import { generateCoachReply } from '../application/coach';
 import { computeOverviewStats, listDeviationDays } from '../application/stats';
@@ -54,6 +55,16 @@ const inventoryItemSchema = z.object({
   expiresAt: z.string().optional(),
 });
 
+const weightRecordSchema = z.object({
+  date: z.string(),
+  weight: z.number().positive(),
+});
+
+const settingsPutSchema = z.object({
+  targetWeightKg: z.union([z.number().positive(), z.null()]).optional(),
+  startingWeightKg: z.union([z.number().positive(), z.null()]).optional(),
+});
+
 function isIsoDate(value: string): value is ISODate {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
@@ -86,6 +97,93 @@ export function buildHttpApp(repo: DayLogRepository) {
   // Healthcheck simple
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'movio-backend' });
+  });
+
+  // --- Peso: API REST + analítica (dominio reutilizable) ---
+  app.get('/weights', async (_req, res) => {
+    const entries = await repo.listWeightEntries();
+    res.json({
+      weights: entries.map(e => ({
+        id: e.day,
+        date: e.day,
+        weight: e.weightKg,
+      })),
+    });
+  });
+
+  app.post('/weights', async (req, res) => {
+    const parseResult = weightRecordSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: 'Payload inválido', details: parseResult.error.issues });
+    }
+    const body = parseResult.data;
+    if (!isIsoDate(body.date)) {
+      return res.status(400).json({ error: 'date debe ser YYYY-MM-DD' });
+    }
+    const createdAt = new Date().toISOString();
+    await repo.upsertWeight(body.date, {
+      day: body.date,
+      weightKg: body.weight,
+      createdAt,
+    });
+    res.status(201).json({
+      id: body.date,
+      date: body.date,
+      weight: body.weight,
+    });
+  });
+
+  app.delete('/weights/:id', async (req, res) => {
+    const id = req.params.id;
+    if (!isIsoDate(id)) {
+      return res.status(400).json({ error: 'id debe ser una fecha YYYY-MM-DD' });
+    }
+    await repo.deleteWeight(id);
+    res.status(204).send();
+  });
+
+  app.get('/weight/insights', async (_req, res) => {
+    const entries = await repo.listWeightEntries();
+    const settings = await repo.getSettings();
+    const insights = computeWeightInsights(entries, settings);
+    res.json(insights);
+  });
+
+  app.get('/weight/projection', async (_req, res) => {
+    const entries = await repo.listWeightEntries();
+    const projection = computeWeightProjection(entries);
+    res.json(projection);
+  });
+
+  app.get('/settings', async (_req, res) => {
+    const settings = await repo.getSettings();
+    res.json(settings);
+  });
+
+  app.put('/settings', async (req, res) => {
+    const parseResult = settingsPutSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: 'Payload inválido', details: parseResult.error.issues });
+    }
+    const body = parseResult.data;
+    const cur = await repo.getSettings();
+    const next = { ...cur };
+    if (body.targetWeightKg !== undefined) {
+      if (body.targetWeightKg === null) {
+        delete next.targetWeightKg;
+      } else {
+        next.targetWeightKg = body.targetWeightKg;
+      }
+    }
+    if (body.startingWeightKg !== undefined) {
+      if (body.startingWeightKg === null) {
+        delete next.startingWeightKg;
+      } else {
+        next.startingWeightKg = body.startingWeightKg;
+      }
+    }
+    await repo.setSettings(next);
+    res.json(await repo.getSettings());
   });
 
   // Registrar comida

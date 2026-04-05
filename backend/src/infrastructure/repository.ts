@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import {
   ActivitySession,
+  AppSettings,
   CoachMessage,
   DayLog,
   DayNotes,
@@ -27,6 +28,10 @@ export interface DayLogRepository {
   listCoachMessages(day: ISODate): Promise<CoachMessage[]>;
   addInventoryItem(item: InventoryItem): Promise<void>;
   listInventory(): Promise<InventoryItem[]>;
+  getSettings(): Promise<AppSettings>;
+  updateSettings(partial: Partial<AppSettings>): Promise<void>;
+  setSettings(settings: AppSettings): Promise<void>;
+  deleteWeight(day: ISODate): Promise<void>;
 }
 
 /**
@@ -37,6 +42,7 @@ export class InMemoryDayLogRepository implements DayLogRepository {
   private days: Map<ISODate, DayLog> = new Map();
   private coachMessages: Map<ISODate, CoachMessage[]> = new Map();
   private inventory: InventoryItem[] = [];
+  private settings: AppSettings = {};
 
   private getOrCreateDay(day: ISODate): DayLog {
     const existing = this.days.get(day);
@@ -73,6 +79,15 @@ export class InMemoryDayLogRepository implements DayLogRepository {
   async upsertWeight(day: ISODate, weight: WeightEntry): Promise<void> {
     const d = this.getOrCreateDay(day);
     d.weight = weight;
+  }
+
+  async deleteWeight(day: ISODate): Promise<void> {
+    const log = this.days.get(day);
+    if (!log?.weight) return;
+    delete log.weight;
+    if (log.meals.length === 0 && log.activities.length === 0 && !log.notes) {
+      this.days.delete(day);
+    }
   }
 
   async upsertNotes(day: ISODate, notes: DayNotes): Promise<void> {
@@ -118,12 +133,26 @@ export class InMemoryDayLogRepository implements DayLogRepository {
   async listInventory(): Promise<InventoryItem[]> {
     return [...this.inventory];
   }
+
+  async getSettings(): Promise<AppSettings> {
+    return { ...this.settings };
+  }
+
+  async updateSettings(partial: Partial<AppSettings>): Promise<void> {
+    this.settings = { ...this.settings, ...partial };
+  }
+
+  async setSettings(settings: AppSettings): Promise<void> {
+    this.settings = { ...settings };
+  }
 }
 
-interface PersistedData {
+/** Snapshot completo para disco o Postgres (JSON/JSONB). */
+export interface PersistedData {
   days: DayLog[];
   coachMessages: CoachMessage[];
   inventory: InventoryItem[];
+  settings?: AppSettings;
 }
 
 /**
@@ -176,6 +205,9 @@ export class DiskDayLogRepository implements DayLogRepository {
       for (const item of data.inventory ?? []) {
         void this.inner.addInventoryItem(item);
       }
+      if (data.settings) {
+        void this.inner.updateSettings(data.settings);
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('No se pudo leer movio-data.json, empezamos vacío.', e);
@@ -189,10 +221,12 @@ export class DiskDayLogRepository implements DayLogRepository {
     // Dado que no tenemos un método para listar TODOS los mensajes, vamos a persistir sólo days e inventory.
     // TODO: si en el futuro los mensajes del coach son críticos, extender la interfaz para listarlos todos.
     const inventory = await this.inner.listInventory();
+    const settings = await this.inner.getSettings();
     const data: PersistedData = {
       days,
       coachMessages: [],
       inventory,
+      settings,
     };
     fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
   }
@@ -245,6 +279,44 @@ export class DiskDayLogRepository implements DayLogRepository {
 
   async listInventory(): Promise<InventoryItem[]> {
     return this.inner.listInventory();
+  }
+
+  async getSettings(): Promise<AppSettings> {
+    return this.inner.getSettings();
+  }
+
+  async updateSettings(partial: Partial<AppSettings>): Promise<void> {
+    await this.inner.updateSettings(partial);
+    await this.saveToDisk();
+  }
+
+  async setSettings(settings: AppSettings): Promise<void> {
+    await this.inner.setSettings(settings);
+    await this.saveToDisk();
+  }
+
+  async deleteWeight(day: ISODate): Promise<void> {
+    await this.inner.deleteWeight(day);
+    await this.saveToDisk();
+  }
+
+  /**
+   * Si no hay mediciones, inserta el seed demo (útil para MVP y demos).
+   */
+  async seedIfEmpty(): Promise<void> {
+    const existing = await this.listWeightEntries();
+    if (existing.length > 0) return;
+    const seed: { day: ISODate; weightKg: number }[] = [
+      { day: '2026-03-28', weightKg: 93.5 },
+      { day: '2026-03-29', weightKg: 93.7 },
+      { day: '2026-03-30', weightKg: 93.6 },
+      { day: '2026-03-31', weightKg: 93.1 },
+      { day: '2026-04-01', weightKg: 93.2 },
+    ];
+    const createdAt = new Date().toISOString();
+    for (const s of seed) {
+      await this.upsertWeight(s.day, { day: s.day, weightKg: s.weightKg, createdAt });
+    }
   }
 }
 

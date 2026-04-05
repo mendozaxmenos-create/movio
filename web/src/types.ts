@@ -116,3 +116,59 @@ export interface ShoppingListResponse {
   };
 }
 
+/** Respuesta GET /weights */
+export interface WeightRecord {
+  id: ISODate;
+  date: ISODate;
+  weight: number;
+}
+
+export interface WeightMetrics {
+  currentWeightKg: number | null;
+  currentDate: string | null;
+  avg7dKg: number | null;
+  diffVsPreviousDayKg: number | null;
+  weeklyChangeKg: number | null;
+}
+
+export interface WeightAlert {
+  type: 'spike_up' | 'stagnation';
+  message: string;
+  deltaKg?: number;
+  daysSinceDecrease?: number;
+}
+
+export interface GoalProgress {
+  targetWeightKg: number;
+  startingWeightKg: number;
+  progressPercent: number;
+  remainingKg: number;
+}
+
+export interface WeightInsightsResponse {
+  trend: 'bajando' | 'subiendo' | 'estable';
+  trendFromRegression: string;
+  metrics: WeightMetrics;
+  goal: GoalProgress | null;
+  alerts: WeightAlert[];
+  coachMessage: string;
+}
+
+export interface WeightProjectionResponse {
+  slopeKgPerDay: number | null;
+  method: 'linear_regression';
+  basedOnEntries: number;
+  lastWeightKg: number | null;
+  lastDate: string | null;
+  projectedKg: {
+    days7: number | null;
+    days14: number | null;
+    days30: number | null;
+  };
+}
+
+export interface AppSettingsResponse {
+  targetWeightKg?: number;
+  startingWeightKg?: number;
+}
+

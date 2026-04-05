@@ -43,9 +43,13 @@ export async function generateCoachReply(context: CoachContext): Promise<string>
     return 'Actividad sumada. Ese movimiento ayuda a equilibrar el resto del día sin necesidad de extremismos.';
   }
 
-  // Registro de peso del día
-  if (text.includes('el peso de hoy es')) {
-    return 'Peso del día registrado. Lo vamos a mirar como parte de la tendencia de varias semanas, no como un juicio de hoy.';
+  // Registro de peso del día (flujo desde la app: "Peso de hoy registrado: X kg.")
+  if (
+    text.includes('peso de hoy registrado') ||
+    text.includes('el peso de hoy es') ||
+    (text.includes('registrado:') && text.includes('kg'))
+  ) {
+    return 'Listo: el peso quedó guardado en tu historial en la nube. ¿Qué desayunaste? Contame en una frase y te propongo ideas para el resto del día.';
   }
 
   // Nota del día / estado anímico
@@ -144,6 +148,20 @@ export async function generateCoachReply(context: CoachContext): Promise<string>
 
   if (text.includes('no cen') || text.includes('sin cena')) {
     return 'Que una comida falte (por ejemplo la cena) no es un problema aislado. Lo importante es que el día siguiente vuelva a una estructura razonable de comidas y no compensar con exceso.';
+  }
+
+  // Desayuno registrado + pedido de sugerencias para el día (flujo principal)
+  if (
+    text.includes('desayuné:') ||
+    text.includes('desayune:') ||
+    (text.includes('desayun') && text.includes('sugerime'))
+  ) {
+    return [
+      'Almuerzo: proteína (carne, pescado, huevos o legumbres) y mitad del plato de vegetales; si el desayuno fue liviano, podés sumar un poco de carbohidrato sin cargar la porción.',
+      'Merienda: algo acotado (fruta + frutos secos o yogur) para no llegar famélico a la noche.',
+      'Cena: más liviana que el almuerzo (verduras + proteína). Si hubo un desvío, no compenses ayunando: acomodá la próxima comida.',
+      'Hidratación: agua durante el día; si más tarde hay evento, podés simplificar el almuerzo para dejar margen, sin obsesionarte con números.',
+    ].join(' ');
   }
 
   if (text.includes('desayun') || text.includes('desayuno')) {

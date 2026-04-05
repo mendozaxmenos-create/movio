@@ -125,3 +125,11 @@ export interface ShoppingList {
   items: ShoppingListItem[];
 }
 
+/** Preferencias globales del usuario (MVP en JSON; futuro: tabla settings). */
+export interface AppSettings {
+  /** Peso objetivo (kg), opcional. */
+  targetWeightKg?: number;
+  /** Peso inicial explícito para calcular % de progreso; si falta, se usa la primera medición. */
+  startingWeightKg?: number;
+}
+
