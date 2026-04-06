@@ -62,6 +62,7 @@ export function WeightScreen() {
   const [goalDraft, setGoalDraft] = useState<{ target: string; start: string }>({ target: '', start: '' });
   const [weightInput, setWeightInput] = useState('');
   const [dateInput, setDateInput] = useState(() => getDefaultDay());
+  const [weightSaveHint, setWeightSaveHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,8 +109,10 @@ export function WeightScreen() {
     if (!trimmed) return;
     const w = Number(trimmed.replace(',', '.'));
     if (!Number.isFinite(w) || w <= 0) return;
+    setWeightSaveHint(null);
     await postWeight(dateInput, w);
     setWeightInput('');
+    setWeightSaveHint(`Guardado: ${dateInput} → ${w} kg`);
     await loadAll();
   }
 
@@ -137,7 +140,8 @@ export function WeightScreen() {
       <header className="border-b border-slate-800/80 px-4 py-5">
         <h1 className="text-xl font-semibold tracking-tight">Peso</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Dashboard minimalista: métricas, tendencia y proyección a partir de tus registros.
+          Podés cargar peso de <strong className="font-medium text-slate-300">hoy o fechas anteriores</strong> para armar
+          el historial en la base de datos.
         </p>
       </header>
 
@@ -147,6 +151,47 @@ export function WeightScreen() {
 
         {!loading && !error && insights && (
           <>
+            <section className="space-y-3 rounded-2xl border border-emerald-900/40 bg-emerald-950/20 p-4">
+              <h2 className="text-sm font-medium text-emerald-100/90">Registrar peso (historial)</h2>
+              <p className="text-xs text-slate-400">
+                Elegí la fecha en el calendario (máximo: hoy) y el peso. Un día = un valor; si repetís fecha, se
+                reemplaza.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <label className="flex flex-1 flex-col gap-1 text-xs text-slate-500">
+                  Fecha
+                  <input
+                    className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
+                    type="date"
+                    max={getDefaultDay()}
+                    value={dateInput}
+                    onChange={e => setDateInput(e.target.value)}
+                  />
+                </label>
+                <label className="flex flex-1 flex-col gap-1 text-xs text-slate-500">
+                  Peso (kg)
+                  <input
+                    className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="ej. 72,4"
+                    value={weightInput}
+                    onChange={e => setWeightInput(e.target.value)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void handleSaveWeight()}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+                >
+                  Guardar
+                </button>
+              </div>
+              {weightSaveHint && (
+                <p className="text-xs text-emerald-400/90">{weightSaveHint}</p>
+              )}
+            </section>
+
             <section className="space-y-3">
               <h2 className="text-sm font-medium text-slate-300">Resumen inteligente</h2>
               <div className="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4 backdrop-blur-md">
@@ -279,39 +324,6 @@ export function WeightScreen() {
                   className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white"
                 >
                   Guardar objetivo
-                </button>
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <h2 className="text-sm font-medium text-slate-300">Nuevo registro</h2>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <label className="flex flex-1 flex-col gap-1 text-xs text-slate-500">
-                  Fecha
-                  <input
-                    className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
-                    type="date"
-                    value={dateInput}
-                    onChange={e => setDateInput(e.target.value)}
-                  />
-                </label>
-                <label className="flex flex-1 flex-col gap-1 text-xs text-slate-500">
-                  Peso (kg)
-                  <input
-                    className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="ej. 72,4"
-                    value={weightInput}
-                    onChange={e => setWeightInput(e.target.value)}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => void handleSaveWeight()}
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
-                >
-                  Guardar
                 </button>
               </div>
             </section>

@@ -116,13 +116,20 @@ export function TodayScreen() {
   async function saveWeightAndCoach(targetDay: string, weight: number) {
     setWeightSaving(true);
     setWeightFeedback(null);
+    const today = getDefaultDay();
     try {
       await postWeight(targetDay, weight);
       await loadTimeline();
-      await askShortPrompt(`Peso de hoy registrado: ${weight} kg.`);
+      // Solo mensaje al coach si es el día de hoy (evita inundar el timeline al cargar historial)
+      if (targetDay === today) {
+        await askShortPrompt(`Peso de hoy registrado: ${weight} kg.`);
+      }
       setWeightFeedback({
         ok: true,
-        text: 'Guardado en la base de datos (nube).',
+        text:
+          targetDay === today
+            ? 'Guardado en la base de datos (nube).'
+            : `Guardado para el ${targetDay}. Lo ves en Peso → historial y gráfico; no aparece en el chat de hoy.`,
       });
     } catch {
       setWeightFeedback({
@@ -181,10 +188,14 @@ export function TodayScreen() {
       </header>
       <main className="screen-main" ref={mainRef}>
         <div className="today-weight-block">
-          <div className="today-weight-block-title">1 · Peso de hoy</div>
+          <div className="today-weight-block-title">1 · Registrar peso</div>
+          <p className="today-weight-hint" style={{ marginBottom: 8 }}>
+            Elegí la fecha: hoy o cualquier día anterior para completar tu historial en la nube.
+          </p>
           <div className="today-weight-inline">
             <input
               type="date"
+              max={getDefaultDay()}
               value={inlineDate}
               onChange={e => setInlineDate(e.target.value)}
               aria-label="Fecha del peso"
@@ -210,7 +221,7 @@ export function TodayScreen() {
             <p className={`today-weight-feedback ${weightFeedback.ok ? 'ok' : 'err'}`}>{weightFeedback.text}</p>
           )}
           <p className="today-weight-hint">
-            Los datos viven en tu API (PostgreSQL en producción). No usamos almacenamiento local del navegador.
+            Un registro por día. Si cargás fechas pasadas, revisalas en la pestaña Peso.
           </p>
           <WeightHistoryPanel />
         </div>
@@ -316,10 +327,11 @@ export function TodayScreen() {
 
             {activeForm === 'weight' && (
               <div className="form-card">
-                <div className="form-title">Registrar peso</div>
+                <div className="form-title">Registrar peso (cualquier fecha hasta hoy)</div>
                 <div className="form-row">
                   <input
                     type="date"
+                    max={getDefaultDay()}
                     value={weightDate}
                     onChange={e => setWeightDate(e.target.value)}
                   />
