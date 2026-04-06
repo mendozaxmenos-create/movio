@@ -245,16 +245,7 @@ La web asume por defecto que el backend corre en `http://localhost:4000` (`VITE_
 
 ---
 
-## Próximos pasos sugeridos
+## Backlog y pendientes
 
-- **Expo + Supabase**
-  - Crear app móvil Expo usando esta API como base de dominio.
-  - Implementar caché local (AsyncStorage) + sincronización optimista.
-- **AI Coach**
-  - Endpoint que, dado el resumen diario + últimas 2 semanas, genere un mensaje corto y calmo.
-  - Guardar estos mensajes junto al `DayLog`.
-- **Notificaciones**
-  - Recordatorios suaves para registrar al final del día o después de eventos clave.
-- **Modelo de datos exacto**
-  - Migrar interfaces de dominio a esquemas persistentes (SQL / Supabase).
+Lista viva de tareas e ideas: **[docs/BACKLOG.md](docs/BACKLOG.md)** (coach con IA, persistencia de mensajes, CORS estricto, import masivo de pesos, móvil, etc.).
 
