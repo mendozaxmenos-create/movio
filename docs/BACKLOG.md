@@ -20,6 +20,9 @@
 |-----------|------|--------|
 | Alta | **Coach con LLM** | Reemplazar stub en `application/coach.ts` por API (OpenAI u otro) con contexto de día + peso + historial. |
 | Alta | **Persistir mensajes del coach** | Hoy el snapshot guarda `coachMessages: []`; los mensajes no sobreviven al reinicio en Postgres igual que en JSON local. Extender snapshot o tabla aparte. |
+| Alta | **Usuarios + invitación para compartir la app** | Agregar registro/login y un flujo “Compartir Movio” que genere un link de invitación. Quien recibe el link puede darse de alta y usar la app (MVP: todas las features habilitadas). |
+| Media | **Feature flags por usuario (futuro)** | Preparar estructura para que un usuario tenga features habilitadas/deshabilitadas (ej. peso, compras, hábitos, nutrición). En MVP: todo ON. |
+| Media | **Popup / novedades por release** | Cada feature nueva debe aparecer en un modal “Novedades” o notificación in-app al entrar (con estado leído por usuario). Mantener un changelog mínimo. |
 | Media | **Notificaciones** | Recordatorios (web push o futuro móvil). |
 | Media | **Importación masiva de pesos** | CSV o pegar lista `fecha,kg` para cargar historial sin un guardado por día. |
 | Media | **UX “cómo vengo”** | Alinear con `docs/ux.md`: estado 🟢🟡🔴 más visible en cabecera si aplica. |
