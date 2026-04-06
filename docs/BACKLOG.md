@@ -23,8 +23,9 @@
 | Media | **Notificaciones** | Recordatorios (web push o futuro móvil). |
 | Media | **Importación masiva de pesos** | CSV o pegar lista `fecha,kg` para cargar historial sin un guardado por día. |
 | Media | **UX “cómo vengo”** | Alinear con `docs/ux.md`: estado 🟢🟡🔴 más visible en cabecera si aplica. |
+| Media | **Foto de la comida → detección** | Subir imagen de lo que se está comiendo y que un modelo con visión (tipo ChatGPT) describa / estime plato y contexto; guardar como comida o borrador. Requiere API de visión + flujo en `TodayScreen` (hoy solo texto). |
+| Media | **Captura de ejercicio → calorías / datos** | Subir screenshot del reloj, app de gym o resumen (como en ChatGPT) y extraer kcal, duración, distancia, etc. Hoy existe stub `POST /days/:day/activities/from-image` en `http.ts` que crea actividad genérica; reemplazar por parsing con visión + confirmación del usuario. |
 | Baja | **Módulos hábitos / nutrición** | Placeholders en `backend/src/modules/`; definir modelo y rutas. |
-| Baja | **Actividad desde imagen (visión)** | Stub en `http.ts`; integrar servicio real. |
 
 ---
 
